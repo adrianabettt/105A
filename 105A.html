@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Desafio de Sequência - Profª Adriana</title>
+    <style>
+        body { font-family: 'Comic Sans MS', sans-serif; text-align: center; background-color: #e8f5e9; color: #2e7d32; padding: 20px; }
+        .instrucao { font-size: 1.1rem; color: #4caf50; margin-bottom: 20px; }
+        
+        .container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        
+        /* Caixas agora aceitam qualquer imagem */
+        .drop-zone {
+            width: 110px; height: 140px;
+            border: 3px dashed #81c784; border-radius: 15px;
+            background-color: #fff;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .drop-zone span { font-size: 11px; color: #2e7d32; font-weight: bold; margin-top: 5px; }
+
+        .items-container { display: flex; justify-content: center; gap: 15px; margin-top: 30px; padding: 15px; background: #fff; border-radius: 20px; display: inline-flex; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .item { font-size: 50px; cursor: grab; padding: 5px; transition: transform 0.2s; }
+        
+        #btnEnviar {
+            margin-top: 30px; padding: 15px 50px;
+            font-size: 20px; font-weight: bold; background-color: #2e7d32; color: white; 
+            border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 5px #1b5e20;
+        }
+        #btnEnviar:active { box-shadow: 0 2px #1b5e20; transform: translateY(3px); }
+
+        footer { margin-top: 50px; padding: 20px; border-top: 2px solid #81c784; color: #1b5e20; font-size: 14px; font-weight: bold; }
+
+        /* Alerta de Pontuação */
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9; }
+        #customAlert {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; padding: 30px; border-radius: 25px; border: 8px solid #2e7d32;
+            z-index: 10; text-align: center; min-width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌱 SEQUÊNCIA DE PASSOS - PLANTAR UMA FLOR </h1>
+    <p class="instrucao">Organize as imagens abaixo. A correção será feita ao final!</p>
+
+    <div class="container">
+        <div class="drop-zone" id="step1" ondrop="drop(event)" ondragover="allowDrop(event)"><span>1º PASSO</span></div>
+        <div class="drop-zone" id="step2" ondrop="drop(event)" ondragover="allowDrop(event)"><span>2º PASSO</span></div>
+        <div class="drop-zone" id="step3" ondrop="drop(event)" ondragover="allowDrop(event)"><span>3º PASSO</span></div>
+        <div class="drop-zone" id="step4" ondrop="drop(event)" ondragover="allowDrop(event)"><span>4º PASSO</span></div>
+        <div class="drop-zone" id="step5" ondrop="drop(event)" ondragover="allowDrop(event)"><span>5º PASSO</span></div>
+    </div>
+
+    <div class="items-container" id="origem" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <div class="item" id="img-4" draggable="true" ondragstart="drag(event)">🌱</div>
+        <div class="item" id="img-1" draggable="true" ondragstart="drag(event)">🪣</div>
+        <div class="item" id="img-5" draggable="true" ondragstart="drag(event)">🌻</div>
+        <div class="item" id="img-2" draggable="true" ondragstart="drag(event)">🫘</div>
+        <div class="item" id="img-3" draggable="true" ondragstart="drag(event)">💦</div>
+    </div>
+
+    <br>
+    <button id="btnEnviar" onclick="finalizar()">ENVIAR ATIVIDADE</button>
+
+    <footer>
+        Profª Adriana Bett Terebinto |São Lourenço do Oeste - SC <br>
+        
+    </footer>
+
+    <div id="overlay"></div>
+    <div id="customAlert">
+        <h2 id="alertEmoji"></h2>
+        <p id="alertTexto" style="font-size: 1.2rem; font-weight: bold;"></p>
+        <div id="alertNota" style="font-size: 4rem; color: #2e7d32; margin: 10px 0;"></div>
+        <button onclick="location.reload()" style="padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; background: #81c784; color: white; font-weight: bold;">TENTAR NOVAMENTE</button>
+    </div>
+
+    <script>
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData("text");
+            const dragged = document.getElementById(data);
+            const target = ev.target;
+            
+            // Permite soltar na zona ou de volta na origem
+            if (target.classList.contains('drop-zone') || target.id === 'origem') {
+                target.appendChild(dragged);
+            }
+        }
+
+        function finalizar() {
+            let acertos = 0;
+            const zonas = ["step1", "step2", "step3", "step4", "step5"];
+            
+            zonas.forEach((id, index) => {
+                const zona = document.getElementById(id);
+                const item = zona.querySelector('.item');
+                if (item) {
+                    const imgNum = item.id.replace('img-', '');
+                    // Se o número da imagem bater com a posição (index+1)
+                    if (parseInt(imgNum) === (index + 1)) {
+                        acertos++;
+                    }
+                }
+            });
+
+            const nota = Math.round((acertos / 5) * 10);
+            exibirAlerta(nota);
+        }
+
+        function exibirAlerta(nota) {
+            const overlay = document.getElementById('overlay');
+            const alertBox = document.getElementById('customAlert');
+            const alertNota = document.getElementById('alertNota');
+            const alertTexto = document.getElementById('alertTexto');
+            const alertEmoji = document.getElementById('alertEmoji');
+
+            overlay.style.display = 'block';
+            alertBox.style.display = 'block';
+            alertNota.innerText = nota;
+
+            if (nota === 10) {
+                alertEmoji.innerText = "🏆";
+                alertTexto.innerText = "PARABÉNS! VOCÊ ACERTOU TUDO!";
+            } else if (nota >= 6) {
+                alertEmoji.innerText = "👍";
+                alertTexto.innerText = "MUITO BEM! QUASE LÁ!";
+            } else {
+                alertEmoji.innerText = "🧐";
+                alertTexto.innerText = "OPA! TENTE REORGANIZAR.";
+            }
+        }
+    </script>
+</body>
+</html>
